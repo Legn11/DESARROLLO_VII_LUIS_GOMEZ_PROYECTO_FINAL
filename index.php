@@ -1,46 +1,86 @@
 <?php
-// Enable error reporting
+/**
+ * Router principal del proyecto
+ */
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Define the base path for includes
+// ----------------------------------------
+// Iniciar sesión
+// ----------------------------------------
+session_start();
+
+// ----------------------------------------
+// Paths base
+// ----------------------------------------
 define('BASE_PATH', __DIR__ . '/');
 
-// Include the configuration file
+// Configuración general (.env, DB, etc.)
 require_once BASE_PATH . 'config.php';
 
-// Include necessary files
+// Librerías comunes
+require_once BASE_PATH . 'src/Auth.php';
 require_once BASE_PATH . 'src/Database.php';
-require_once BASE_PATH . 'src/TaskManager.php';
-require_once BASE_PATH . 'src/Task.php';
 
-// Create an instance of TaskManager
-$taskManager = new TaskManager();
+// Controladores
+require_once BASE_PATH . 'src/controllers/LoginController.php';
+require_once BASE_PATH . 'src/controllers/RegisterController.php';
 
-// Get the action from the URL, default to 'list' if not set
-$action = $_GET['action'] ?? 'list';
+// (Opcional, si existe)
+if (file_exists(BASE_PATH . 'src/controllers/ChatController.php')) {
+    require_once BASE_PATH . 'src/controllers/ChatController.php';
+}
 
-// Handle different actions
+// ----------------------------------------
+// Obtener acción solicitada
+// ----------------------------------------
+$action = htmlspecialchars($_GET['action'] ?? 'login');
+
+// ----------------------------------------
+// Si ya está logueado, no regresar al login
+// ----------------------------------------
+if (Auth::isAuthenticated() && $action === 'login') {
+    header("Location: ?action=chat");
+    exit;
+}
+
+// ----------------------------------------
+// Rutas
+// ----------------------------------------
 switch ($action) {
-    case 'create':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $taskManager->createTask($_POST['title']);
-            header('Location: ' . BASE_URL);
+
+    case 'login':
+        (new LoginController())->show();
+        break;
+
+    case 'login_auth':
+        (new LoginController())->authenticate();
+        break;
+
+    case 'register':
+        (new RegisterController())->show();
+        break;
+
+    case 'register_store':
+        (new RegisterController())->store();
+        break;
+
+    case 'chat': // nueva ruta
+        if (!Auth::isAuthenticated()) {
+            header("Location: ?action=login");
             exit;
         }
-        require BASE_PATH . 'views/task_form.php';
+        (new ChatController())->index();
         break;
-    case 'toggle':
-        $taskManager->toggleTask($_GET['id']);
-        header('Location: ' . BASE_URL);
+
+    case 'send_message': // nueva ruta
+        (new ChatController())->sendMessage();
         break;
-    case 'delete':
-        $taskManager->deleteTask($_GET['id']);
-        header('Location: ' . BASE_URL);
-        break;
+
     default:
-        $tasks = $taskManager->getAllTasks();
-        require BASE_PATH . 'views/task_list.php';
+        http_response_code(404);
+        echo "<h2>404 - Página no encontrada</h2>";
         break;
 }

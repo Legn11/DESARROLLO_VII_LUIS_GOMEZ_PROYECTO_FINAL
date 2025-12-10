@@ -1,31 +1,82 @@
 <?php
-class Database {
-    // Instancia única de la clase (patrón Singleton)
-    private static $instance = null;
-    // Conexión PDO
-    private $conn;
 
-    // Constructor privado para prevenir la creación directa de objetos
-    private function __construct() {
-        // Creamos la conexión PDO
-        $this->conn = new PDO(
-            "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME,
-            DB_USER,
-            DB_PASS,
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-        );
+class Database
+{
+    private static ?Database $instance = null;
+    private PDO $connection;
+
+    private function __construct()
+    {
+        $host = DB_HOST ?? null;
+        $dbname = DB_NAME ?? null;
+        $user = DB_USER ?? null;
+        $pass = DB_PASS ?? null;
+
+        // Validación de configuración
+        if (!$host || !$dbname || !$user) {
+            throw new RuntimeException("Error: Configuración de DB incompleta en config.php o .env");
+        }
+
+        $dsn = "mysql:host={$host};dbname={$dbname};charset=utf8mb4";
+
+        try {
+            $this->connection = new PDO(
+                $dsn,
+                $user,
+                $pass,
+                [
+                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_PERSISTENT         => false,
+                ]
+            );
+        } catch (PDOException $e) {
+
+            // Mostrar detalles solo en modo desarrollo
+            if (defined('APP_ENV') && APP_ENV === 'development') {
+                exit("DB Connection Error: " . $e->getMessage());
+            }
+
+            exit("Error de conexión a la base de datos.");
+        }
     }
 
-    // Método para obtener la instancia única de la clase
-    public static function getInstance() {
+    public static function getInstance(): Database
+    {
         if (self::$instance === null) {
-            self::$instance = new self();
+            self::$instance = new Database();
         }
         return self::$instance;
     }
 
-    // Método para obtener la conexión PDO
-    public function getConnection() {
-        return $this->conn;
+    public function getConnection(): PDO
+    {
+        return $this->connection;
+    }
+
+    // Helpers opcionales: limpian controladores
+    public function query(string $sql, array $params = []): PDOStatement
+    {
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute($params);
+        return $stmt;
+    }
+
+    public function fetch(string $sql, array $params = []): ?array
+    {
+        $stmt = $this->query($sql, $params);
+        return $stmt->fetch() ?: null;
+    }
+
+    public function fetchAll(string $sql, array $params = []): array
+    {
+        $stmt = $this->query($sql, $params);
+        return $stmt->fetchAll();
+    }
+
+    public function execute(string $sql, array $params = []): bool
+    {
+        $stmt = $this->connection->prepare($sql);
+        return $stmt->execute($params);
     }
 }

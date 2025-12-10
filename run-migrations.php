@@ -1,16 +1,49 @@
 <?php
+/**
+ * Script run-migrations.php
+ *
+ * Ejecuta todas las migraciones SQL no aplicadas usando MigrationManager.
+ */
 
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/database/MigrationManager.php';
+
+// Ruta correcta según tu estructura real
+require_once __DIR__ . '/DB/MigrationManager.php';
 
 try {
-    $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    $migrationsPath = __DIR__ . '/database/migrations';
+    // ----------------------------------------
+    // Conexión PDO
+    // ----------------------------------------
+    $pdo = new PDO(
+        "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+        DB_USER,
+        DB_PASS,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+        ]
+    );
+
+    // ----------------------------------------
+    // Verificar carpeta de migraciones
+    // ----------------------------------------
+    $migrationsPath = __DIR__ . '/DB/migrations';
+
+    if (!is_dir($migrationsPath)) {
+        throw new RuntimeException("La carpeta de migraciones no existe: $migrationsPath");
+    }
+
+    // ----------------------------------------
+    // Ejecutar migraciones
+    // ----------------------------------------
     $migrationManager = new MigrationManager($pdo, $migrationsPath);
     $migrationManager->migrate();
 
+    echo "✔ Migraciones ejecutadas correctamente.\n";
+
 } catch (PDOException $e) {
-    die("DB ERROR: " . $e->getMessage());
+    die("❌ ERROR DE BASE DE DATOS: " . $e->getMessage());
+} catch (Exception $e) {
+    die("❌ ERROR EN MIGRACIÓN: " . $e->getMessage());
 }
