@@ -1,55 +1,128 @@
 <?php
 
-class MigrationManager {
-    private $pdo;
-    private $migrationsPath;
+class MigrationManager
+{
+    private PDO $pdo;
+    private string $migrationsPath;
 
-    public function __construct($pdo, $migrationsPath) {
+    /**
+     * @param PDO $pdo
+     * @param string $migrationsPath
+     */
+    public function __construct(PDO $pdo, string $migrationsPath)
+    {
         $this->pdo = $pdo;
-        $this->migrationsPath = $migrationsPath;
+        $this->migrationsPath = rtrim($migrationsPath, '/');
     }
 
-    public function migrate() {
+    /**
+     * Ejecuta todas las migraciones pendientes
+     */
+    public function migrate(): void
+    {
         $this->createMigrationsTableIfNotExists();
-        $appliedMigrations = $this->getAppliedMigrations();
-        $files = $this->getMigrationFiles();
-        $newMigrations = array_diff($files, $appliedMigrations);
 
-        foreach ($newMigrations as $migration) {
+        $applied  = $this->getAppliedMigrations();
+        $files    = $this->getMigrationFiles();
+        $pending  = array_diff($files, $applied);
+
+        if (empty($pending)) {
+            echo "No new migrations to apply.\n";
+            return;
+        }
+
+        foreach ($pending as $migration) {
             $this->applyMigration($migration);
         }
-
-        if (empty($newMigrations)) {
-            echo "No new migrations to apply.\n";
-        }
     }
 
-    private function createMigrationsTableIfNotExists() {
-        $this->pdo->exec("CREATE TABLE IF NOT EXISTS migrations (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            migration VARCHAR(255),
-            applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )");
+    /**
+     * Crea la tabla migrations si no existe
+     */
+    private function createMigrationsTableIfNotExists(): void
+    {
+        $this->pdo->exec("
+            CREATE TABLE IF NOT EXISTS migrations (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                migration VARCHAR(255) NOT NULL,
+                applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ");
     }
 
-    private function getAppliedMigrations() {
-        $statement = $this->pdo->query("SELECT migration FROM migrations");
-        return $statement->fetchAll(PDO::FETCH_COLUMN);
+    /**
+     * Obtiene migraciones ya aplicadas
+     */
+    private function getAppliedMigrations(): array
+    {
+        $stmt = $this->pdo->query("SELECT migration FROM migrations");
+        return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
     }
 
-    private function getMigrationFiles() {
+    /**
+     * Retorna lista de archivos .sql ordenados
+     */
+    private function getMigrationFiles(): array
+    {
         $files = scandir($this->migrationsPath);
-        $migrations = array_filter($files, function($file) {
+
+        $migrations = array_filter($files, function ($file) {
             return pathinfo($file, PATHINFO_EXTENSION) === 'sql';
         });
+
         sort($migrations);
-        return $migrations;
+        return array_values($migrations);
     }
 
-    private function applyMigration($migration) {
-        $sql = file_get_contents($this->migrationsPath . '/' . $migration);
-        $this->pdo->exec($sql);
-        $this->pdo->exec("INSERT INTO migrations (migration) VALUES ('$migration')");
-        echo "Applied migration: $migration\n";
+    /**
+     * Aplica una migración individual
+     */
+    private function applyMigration(string $migration): void
+{
+    $path = $this->migrationsPath . '/' . $migration;
+
+    if (!file_exists($path)) {
+        throw new RuntimeException("Migration file not found: $path");
     }
+
+    $sql = trim(file_get_contents($path));
+
+    // Evitar ejecutar migraciones vacías
+    if ($sql === '') {
+        echo "⚠ Migración vacía o sin contenido: $migration<br>";
+        return;
+    }
+
+    try {
+        $this->pdo->beginTransaction();
+
+        // Ejecutar múltiples sentencias separadas por punto y coma
+        $statements = array_filter(array_map('trim', explode(';', $sql)));
+
+        foreach ($statements as $statement) {
+            if ($statement !== '') {
+                $this->pdo->exec($statement);
+            }
+        }
+
+        // Registrar migración como aplicada
+        $stmt = $this->pdo->prepare("
+            INSERT INTO migrations (migration) VALUES (:migration)
+        ");
+        $stmt->execute(['migration' => $migration]);
+
+        $this->pdo->commit();
+
+        echo "✔ Migración aplicada: $migration<br>";
+
+    } catch (Exception $e) {
+
+        // Solo hacer rollback si existe una transacción activa
+        if ($this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
+        }
+
+        echo "❌ Error applying migration $migration: " . $e->getMessage() . "<br>";
+    }
+}
 }

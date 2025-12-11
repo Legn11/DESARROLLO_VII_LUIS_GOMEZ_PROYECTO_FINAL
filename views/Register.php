@@ -1,14 +1,6 @@
 <?php
-/**
- * Vista: Registro de Usuario
- *
- * Propósito:
- * Mostrar el formulario para crear nuevos usuarios.
- *
- * Controlador asociado:
- * RegisterController::show()
- * RegisterController::store()
- */
+ // Vista: Registro de Usuario
+ 
 ?>
 
 <!DOCTYPE html>
@@ -24,8 +16,6 @@
     <?php if (!empty($error)) : ?>
         <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
     <?php endif; ?>
-
-    <!-- FORMULARIO ADAPTADO AL ROUTER -->
     <form action="index.php?action=register_store" method="POST">
         <label>Nombre:</label><br>
         <input type="text" name="name" required><br><br>

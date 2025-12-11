@@ -54,7 +54,6 @@ class Database
         return $this->connection;
     }
 
-    // Helpers opcionales: limpian controladores
     public function query(string $sql, array $params = []): PDOStatement
     {
         $stmt = $this->connection->prepare($sql);

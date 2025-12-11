@@ -1,14 +1,6 @@
 <?php
-/**
- * Vista: Login
- *
- * Propósito:
- * Mostrar el formulario de autenticación del usuario.
- *
- * Controlador asociado:
- * LoginController::show()
- * LoginController::authenticate()
- */
+// Vista: Login
+
 ?>
 
 <!DOCTYPE html>
@@ -25,7 +17,6 @@
         <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
     <?php endif; ?>
 
-    <!-- FORMULARIO MODIFICADO PARA USAR router.php -->
     <form action="index.php?action=login_auth" method="POST">
         <label>Email:</label><br>
         <input type="email" name="email" required><br><br>

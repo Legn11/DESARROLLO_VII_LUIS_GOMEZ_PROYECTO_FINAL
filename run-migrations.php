@@ -1,20 +1,12 @@
 <?php
-/**
- * Script run-migrations.php
- *
- * Ejecuta todas las migraciones SQL no aplicadas usando MigrationManager.
- */
 
 require_once __DIR__ . '/config.php';
 
-// Ruta correcta según tu estructura real
+// Cargar la clase MigrationManager
 require_once __DIR__ . '/DB/MigrationManager.php';
 
 try {
-
-    // ----------------------------------------
     // Conexión PDO
-    // ----------------------------------------
     $pdo = new PDO(
         "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
         DB_USER,
@@ -25,18 +17,14 @@ try {
         ]
     );
 
-    // ----------------------------------------
-    // Verificar carpeta de migraciones
-    // ----------------------------------------
+    // Ruta correcta a la carpeta de migraciones
     $migrationsPath = __DIR__ . '/DB/migrations';
 
     if (!is_dir($migrationsPath)) {
         throw new RuntimeException("La carpeta de migraciones no existe: $migrationsPath");
     }
 
-    // ----------------------------------------
     // Ejecutar migraciones
-    // ----------------------------------------
     $migrationManager = new MigrationManager($pdo, $migrationsPath);
     $migrationManager->migrate();
 

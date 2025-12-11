@@ -1,19 +1,6 @@
 <?php
-/**
- * RegisterController
- *
- * Propósito:
- * Administrar el flujo de registro de nuevos usuarios.
- *
- * Funciones:
- *  - show(): mostrar el formulario.
- *  - store(): procesar el registro enviado.
- *
- * Dependencias:
- *  - Auth.php
- */
 
-require_once __DIR__ . '/../Auth.php';
+require_once __DIR__ . '/Auth.php';
 
 class RegisterController
 {
@@ -24,17 +11,14 @@ class RegisterController
         $this->auth = new Auth();
     }
 
-    /**
-     * Mostrar formulario de registro
-     */
+    // Mostrar formulario de registro
     public function show()
     {
         require __DIR__ . '/../../views/register.php';
     }
 
-    /**
-     * Procesar registro
-     */
+    // Procesar registro
+     
     public function store()
     {
         if (!isset($_POST['name'], $_POST['email'], $_POST['password'])) {

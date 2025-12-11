@@ -1,38 +1,45 @@
 <?php
 
-require_once __DIR__ . '/../config.php';
+// Asegurar inicio de sesión en cualquier contexto
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once __DIR__ . '/Database.php';
 
 class Auth
 {
-    private $pdo;
-
-    public function __construct()
+    /**
+     * Verifica si el usuario está autenticado
+     */
+    public static function isAuthenticated(): bool
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $this->db = Database::getInstance()->getConnection();
-
+        return isset($_SESSION['user_id']);
     }
 
-    // Registrar un nuevo usuario
-    public function register($name, $email, $password)
+    /**
+     * Registrar usuario
+     */
+    public static function register(string $name, string $email, string $password): array
     {
-        $query = "SELECT id FROM users WHERE email = :email LIMIT 1";
-        $stmt = $this->pdo->prepare($query);
+        $db = Database::getInstance()->getConnection();
+
+        // Verificar email duplicado
+        $stmt = $db->prepare("SELECT id FROM users WHERE email = :email");
         $stmt->execute(['email' => $email]);
 
         if ($stmt->fetch()) {
             return ['success' => false, 'message' => 'El email ya está registrado.'];
         }
 
+        // Hash contraseña
         $hashed = password_hash($password, PASSWORD_DEFAULT);
 
-        $insert = "INSERT INTO users (name, email, password) 
-                   VALUES (:name, :email, :password)";
-        $stmt = $this->pdo->prepare($insert);
+        $stmt = $db->prepare("
+            INSERT INTO users (name, email, password) 
+            VALUES (:name, :email, :password)
+        ");
+
         $stmt->execute([
             'name'     => $name,
             'email'    => $email,
@@ -42,53 +49,51 @@ class Auth
         return ['success' => true];
     }
 
-    // Iniciar sesión
-    public function login($email, $password)
+    /**
+     * Login
+     */
+    public static function login(string $email, string $password): array
     {
-        $query = "SELECT id, name, email, password FROM users WHERE email = :email LIMIT 1";
-        $stmt = $this->pdo->prepare($query);
+        $db = Database::getInstance()->getConnection();
+
+        $stmt = $db->prepare("SELECT id, name, email, password FROM users WHERE email = :email");
         $stmt->execute(['email' => $email]);
 
         $user = $stmt->fetch();
 
-        if (!$user) {
-            return ['success' => false, 'message' => 'Credenciales incorrectas.'];
-        }
-
-        if (!password_verify($password, $user['password'])) {
+        if (!$user || !password_verify($password, $user['password'])) {
             return ['success' => false, 'message' => 'Credenciales incorrectas.'];
         }
 
         // Crear sesión
-        $_SESSION['user'] = [
-            'id'    => $user['id'],
-            'name'  => $user['name'],
-            'email' => $user['email']
-        ];
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_name'] = $user['name'];
+        $_SESSION['user_email'] = $user['email'];
 
         return ['success' => true];
     }
 
-     // Crear sesión
-    public function logout()
+    /**
+     * Cerrar sesión
+     */
+    public static function logout(): void
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
         session_unset();
         session_destroy();
+        setcookie(session_name(), '', time() - 3600);
     }
 
-    // Verificar si hay usuario autenticado
-    public function check()
+    /**
+     * Obtener usuario como array
+     */
+    public static function user(): ?array
     {
-        return isset($_SESSION['user']);
-    }
+        if (!self::isAuthenticated()) return null;
 
-    // Obtener información del usuario autenticado
-    public function user()
-    {
-        return $_SESSION['user'] ?? null;
+        return [
+            'id' => $_SESSION['user_id'],
+            'name' => $_SESSION['user_name'],
+            'email' => $_SESSION['user_email']
+        ];
     }
 }

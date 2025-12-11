@@ -1,54 +1,39 @@
 <?php
-/**
- * Router principal del proyecto
- */
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// ----------------------------------------
-// Iniciar sesión
-// ----------------------------------------
 session_start();
 
-// ----------------------------------------
-// Paths base
-// ----------------------------------------
 define('BASE_PATH', __DIR__ . '/');
 
-// Configuración general (.env, DB, etc.)
+// Configuración general
 require_once BASE_PATH . 'config.php';
 
-// Librerías comunes
-require_once BASE_PATH . 'src/Auth.php';
+// Base de datos (ruta correcta)
 require_once BASE_PATH . 'src/Database.php';
+
+// Auth (usa Database, por eso debe venir después)
+require_once BASE_PATH . 'src/Auth.php';
 
 // Controladores
 require_once BASE_PATH . 'src/controllers/LoginController.php';
 require_once BASE_PATH . 'src/controllers/RegisterController.php';
 
-// (Opcional, si existe)
 if (file_exists(BASE_PATH . 'src/controllers/ChatController.php')) {
     require_once BASE_PATH . 'src/controllers/ChatController.php';
 }
 
-// ----------------------------------------
-// Obtener acción solicitada
-// ----------------------------------------
 $action = htmlspecialchars($_GET['action'] ?? 'login');
 
-// ----------------------------------------
-// Si ya está logueado, no regresar al login
-// ----------------------------------------
+// Redirección si ya está logueado
 if (Auth::isAuthenticated() && $action === 'login') {
     header("Location: ?action=chat");
     exit;
 }
 
-// ----------------------------------------
 // Rutas
-// ----------------------------------------
 switch ($action) {
 
     case 'login':
@@ -67,7 +52,7 @@ switch ($action) {
         (new RegisterController())->store();
         break;
 
-    case 'chat': // nueva ruta
+    case 'chat':
         if (!Auth::isAuthenticated()) {
             header("Location: ?action=login");
             exit;
@@ -75,7 +60,7 @@ switch ($action) {
         (new ChatController())->index();
         break;
 
-    case 'send_message': // nueva ruta
+    case 'send_message':
         (new ChatController())->sendMessage();
         break;
 
