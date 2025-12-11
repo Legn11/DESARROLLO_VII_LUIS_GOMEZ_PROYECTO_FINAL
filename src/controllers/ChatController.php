@@ -20,7 +20,12 @@ class ChatController
         }
 
         $userId = Auth::user()['id'];
+
+        // Lista de chats del usuario
         $chats = $this->getUserChats($userId);
+
+        // Lista de usuarios disponibles para iniciar un chat
+        $users = $this->getAllUsersExceptMe($userId);
 
         $activeChatId = $_GET['chat_id'] ?? null;
         $messages = [];
@@ -29,7 +34,6 @@ class ChatController
             $messages = $this->getMessages($activeChatId);
         }
 
-        // Ruta correcta hacia la vista
         include __DIR__ . '/../../views/Chat.php';
     }
 
@@ -94,14 +98,14 @@ class ChatController
         ");
 
         $stmt->execute([
-            'chat' => $chatId,
-            'user' => $userId,
-            'content' => $content
+            'chat'   => $chatId,
+            'user'   => $userId,
+            'content'=> $content
         ]);
 
-        $this->db
-            ->prepare("UPDATE chats SET updated_at = NOW() WHERE id = :id")
-            ->execute(['id' => $chatId]);
+        $this->db->prepare("
+            UPDATE chats SET updated_at = NOW() WHERE id = :id
+        ")->execute(['id' => $chatId]);
 
         echo json_encode(['success' => true]);
         exit;
@@ -146,6 +150,7 @@ class ChatController
         ");
 
         $stmt->execute(['u1' => $userId, 'u2' => $otherId]);
+
         $chatId = $this->db->lastInsertId();
 
         header("Location: index.php?action=chat&chat_id=" . $chatId);
@@ -163,5 +168,17 @@ class ChatController
 
         echo json_encode($this->getMessages($chatId));
         exit;
+    }
+
+    private function getAllUsersExceptMe($userId)
+    {
+        $stmt = $this->db->prepare("
+            SELECT id, username
+            FROM users
+            WHERE id != :id
+        ");
+
+        $stmt->execute(['id' => $userId]);
+        return $stmt->fetchAll();
     }
 }

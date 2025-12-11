@@ -59,9 +59,17 @@ switch ($action) {
         }
         (new ChatController())->index();
         break;
-
+    
     case 'send_message':
         (new ChatController())->sendMessage();
+        exit;
+
+    case 'get_messages_api':
+        (new ChatController())->getMessagesApi();
+        break;
+
+    case 'new_chat':
+        (new ChatController())->newChat();
         break;
 
     default:
@@ -69,3 +77,4 @@ switch ($action) {
         echo "<h2>404 - Página no encontrada</h2>";
         break;
 }
+
