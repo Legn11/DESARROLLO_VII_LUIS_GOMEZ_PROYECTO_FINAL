@@ -16,7 +16,9 @@
     <?php if (!empty($error)) : ?>
         <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
     <?php endif; ?>
-    <form action="index.php?action=register_store" method="POST">
+    <form action="/PROYECTO/index.php?action=register_store" method="POST">
+
+
         <label>Nombre:</label><br>
         <input type="text" name="name" required><br><br>
 

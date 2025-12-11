@@ -41,7 +41,7 @@ $user = Auth::user();
 
     <h2>Chat</h2>
 
-    <p>Usuario: <strong><?= htmlspecialchars($user['name']) ?></strong></p>
+    <p>Usuario: <strong><?= htmlspecialchars($user['username']) ?></strong></p>
     <p><a href="index.php?action=logout">Cerrar sesión</a></p>
 
     <div class="chat-box">

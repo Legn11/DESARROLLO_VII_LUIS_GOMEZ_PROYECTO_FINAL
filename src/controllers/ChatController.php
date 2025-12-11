@@ -12,9 +12,6 @@ class ChatController
         $this->db = Database::getInstance()->getConnection();
     }
 
-    /**
-     * Página principal del chat
-     */
     public function index()
     {
         if (!Auth::isAuthenticated()) {
@@ -23,31 +20,19 @@ class ChatController
         }
 
         $userId = Auth::user()['id'];
-
-        // Obtener todos los chats del usuario
         $chats = $this->getUserChats($userId);
 
-        // Obtener ID de chat activo si existe
         $activeChatId = $_GET['chat_id'] ?? null;
         $messages = [];
 
-        if ($activeChatId) {
-
-            // Validar acceso al chat
-            if (!$this->userBelongsToChat($userId, $activeChatId)) {
-                die("Acceso denegado.");
-            }
-
+        if ($activeChatId && $this->userBelongsToChat($userId, $activeChatId)) {
             $messages = $this->getMessages($activeChatId);
         }
 
-        // Mostrar vista
-        include __DIR__ . '/../views/Chat.php';
+        // Ruta correcta hacia la vista
+        include __DIR__ . '/../../views/Chat.php';
     }
 
-    /**
-     * Verifica si el usuario pertenece al chat
-     */
     private function userBelongsToChat($userId, $chatId)
     {
         $stmt = $this->db->prepare("
@@ -57,57 +42,40 @@ class ChatController
             LIMIT 1
         ");
 
-        $stmt->execute([
-            'chat' => $chatId,
-            'uid'  => $userId
-        ]);
-
-        return (bool) $stmt->fetch();
+        $stmt->execute(['chat' => $chatId, 'uid' => $userId]);
+        return (bool)$stmt->fetch();
     }
 
-    /**
-     * Obtiene los chats donde el usuario participa
-     */
     private function getUserChats($userId)
     {
-        $query = "
+        $stmt = $this->db->prepare("
             SELECT * FROM chats
             WHERE user1_id = :id OR user2_id = :id
             ORDER BY updated_at DESC
-        ";
+        ");
 
-        $stmt = $this->db->prepare($query);
         $stmt->execute(['id' => $userId]);
-
         return $stmt->fetchAll();
     }
 
-    /**
-     * Cargar mensajes de un chat específico
-     */
     private function getMessages($chatId)
     {
-        $query = "
-            SELECT m.*, u.name AS user_name
+        $stmt = $this->db->prepare("
+            SELECT m.*, u.username AS user_name
             FROM messages m
             JOIN users u ON u.id = m.user_id
             WHERE m.chat_id = :chat
             ORDER BY m.created_at ASC
-        ";
+        ");
 
-        $stmt = $this->db->prepare($query);
         $stmt->execute(['chat' => $chatId]);
-
         return $stmt->fetchAll();
     }
 
-    /**
-     * Enviar un mensaje
-     */
     public function sendMessage()
     {
         if (!Auth::isAuthenticated()) {
-            echo json_encode(['success' => false, 'error' => 'No autenticado']);
+            echo json_encode(['success' => false]);
             exit;
         }
 
@@ -115,14 +83,8 @@ class ChatController
         $chatId = $_POST['chat_id'] ?? null;
         $content = trim($_POST['message'] ?? '');
 
-        if (!$chatId || $content === '') {
-            echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
-            exit;
-        }
-
-        // Validar acceso al chat
-        if (!$this->userBelongsToChat($userId, $chatId)) {
-            echo json_encode(['success' => false, 'error' => 'Acceso denegado']);
+        if (!$chatId || !$this->userBelongsToChat($userId, $chatId)) {
+            echo json_encode(['success' => false]);
             exit;
         }
 
@@ -137,18 +99,14 @@ class ChatController
             'content' => $content
         ]);
 
-        // Actualizar chat
-        $this->db->prepare("
-            UPDATE chats SET updated_at = NOW() WHERE id = :id
-        ")->execute(['id' => $chatId]);
+        $this->db
+            ->prepare("UPDATE chats SET updated_at = NOW() WHERE id = :id")
+            ->execute(['id' => $chatId]);
 
         echo json_encode(['success' => true]);
         exit;
     }
 
-    /**
-     * Crear chat entre dos usuarios
-     */
     public function newChat()
     {
         if (!Auth::isAuthenticated()) {
@@ -164,10 +122,9 @@ class ChatController
         }
 
         if ($userId == $otherId) {
-            die("No puedes abrir un chat contigo mismo.");
+            die("No puedes iniciar un chat contigo mismo.");
         }
 
-        // Verificar si ya existe
         $stmt = $this->db->prepare("
             SELECT id FROM chats
             WHERE (user1_id = :u1 AND user2_id = :u2)
@@ -176,7 +133,6 @@ class ChatController
         ");
 
         $stmt->execute(['u1' => $userId, 'u2' => $otherId]);
-
         $chat = $stmt->fetch();
 
         if ($chat) {
@@ -184,7 +140,6 @@ class ChatController
             exit;
         }
 
-        // Crear chat nuevo
         $stmt = $this->db->prepare("
             INSERT INTO chats (user1_id, user2_id)
             VALUES (:u1, :u2)
@@ -197,9 +152,6 @@ class ChatController
         exit;
     }
 
-    /**
-     * API para obtener mensajes (AJAX)
-     */
     public function getMessagesApi()
     {
         $chatId = $_GET['chat_id'] ?? null;
@@ -213,4 +165,3 @@ class ChatController
         exit;
     }
 }
-

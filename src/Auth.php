@@ -36,12 +36,12 @@ class Auth
         $hashed = password_hash($password, PASSWORD_DEFAULT);
 
         $stmt = $db->prepare("
-            INSERT INTO users (name, email, password) 
-            VALUES (:name, :email, :password)
+            INSERT INTO users (username, email, password) 
+            VALUES (:username, :email, :password)
         ");
 
         $stmt->execute([
-            'name'     => $name,
+            'username' => $name,
             'email'    => $email,
             'password' => $hashed
         ]);
@@ -52,26 +52,28 @@ class Auth
     /**
      * Login
      */
-    public static function login(string $email, string $password): array
-    {
-        $db = Database::getInstance()->getConnection();
+   public static function login(string $email, string $password): array
+{
+    $db = Database::getInstance()->getConnection();
 
-        $stmt = $db->prepare("SELECT id, name, email, password FROM users WHERE email = :email");
-        $stmt->execute(['email' => $email]);
+    // OJO: ahora sí pedimos "username"
+    $stmt = $db->prepare("SELECT id, username, email, password FROM users WHERE email = :email");
+    $stmt->execute(['email' => $email]);
 
-        $user = $stmt->fetch();
+    $user = $stmt->fetch();
 
-        if (!$user || !password_verify($password, $user['password'])) {
-            return ['success' => false, 'message' => 'Credenciales incorrectas.'];
-        }
-
-        // Crear sesión
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_name'] = $user['name'];
-        $_SESSION['user_email'] = $user['email'];
-
-        return ['success' => true];
+    if (!$user || !password_verify($password, $user['password'])) {
+        return ['success' => false, 'message' => 'Credenciales incorrectas.'];
     }
+
+    // Crear sesión correctamente
+    $_SESSION['user_id']    = $user['id'];
+    $_SESSION['user_name']  = $user['username'];
+    $_SESSION['user_email'] = $user['email'];
+
+    return ['success' => true];
+}
+
 
     /**
      * Cerrar sesión
@@ -92,7 +94,7 @@ class Auth
 
         return [
             'id' => $_SESSION['user_id'],
-            'name' => $_SESSION['user_name'],
+            'username' => $_SESSION['user_name'],
             'email' => $_SESSION['user_email']
         ];
     }
