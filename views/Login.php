@@ -1,37 +1,47 @@
-<?php
-// Vista: Login
-
-?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Iniciar Sesión</title>
+
+    <!-- Estilos del Login -->
+    <link rel="stylesheet" href="/PROYECTO/public/assets/css/Auth.css">
 </head>
 <body>
 
-    <h2>Iniciar Sesión</h2>
+<div class="login-container">
 
-    <?php if (!empty($error)) : ?>
-        <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
+    <h2>Bienvenido</h2>
+    <p class="subtitle">Ingresa tus credenciales para continuar</p>
+
+    <?php if (!empty($error)): ?>
+        <div class="error-box">
+            <?php echo htmlspecialchars($error); ?>
+        </div>
     <?php endif; ?>
 
     <form action="index.php?action=login_auth" method="POST">
-        <label>Email:</label><br>
-        <input type="email" name="email" required><br><br>
 
-        <label>Contraseña:</label><br>
-        <input type="password" name="password" required><br><br>
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="correo@ejemplo.com" required>
+        </div>
 
-        <button type="submit">Ingresar</button>
+        <div class="input-group">
+            <label>Contraseña</label>
+            <input type="password" name="password" placeholder="********" required>
+        </div>
+
+        <button class="btn" type="submit">Iniciar Sesión</button>
+
+        <p class="link">
+            ¿No tienes cuenta? <a href="index.php?action=register">Regístrate aquí</a>
+        </p>
     </form>
 
-    <p>
-        ¿No tienes cuenta?
-        <a href="index.php?action=register">Regístrate aquí</a>
-    </p>
+</div>
 
 </body>
 </html>
+
 

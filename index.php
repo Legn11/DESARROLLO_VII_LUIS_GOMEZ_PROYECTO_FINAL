@@ -44,6 +44,12 @@ switch ($action) {
         (new LoginController())->authenticate();
         break;
 
+    case 'logout':
+        Auth::logout();
+        header("Location: ?action=login");
+        exit;
+
+
     case 'register':
         (new RegisterController())->show();
         break;

@@ -32,7 +32,7 @@ class RegisterController
         $result = $this->auth->register($name, $email, $password);
 
         if ($result['success']) {
-            header("Location: " . BASE_URL . "/login");
+            header("Location: " . BASE_URL . "/index.php?action=login");
             exit;
         }
 

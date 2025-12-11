@@ -113,8 +113,9 @@
     <?php if (!empty($chats)): ?>
         <?php foreach ($chats as $chat): ?>
             <div class="chat-item" onclick="location.href='index.php?action=chat&chat_id=<?php echo $chat['id']; ?>'">
-                💬 Chat ID: <?php echo $chat['id']; ?>
+                💬 <?php echo htmlspecialchars($chat['other_username']); ?>
             </div>
+
         <?php endforeach; ?>
     <?php else: ?>
         <p>No tienes chats aún.</p>

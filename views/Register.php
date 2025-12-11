@@ -1,40 +1,52 @@
-<?php
- // Vista: Registro de Usuario
- 
-?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Registro</title>
+    <title>Crear Cuenta</title>
+
+    <!-- CSS reutilizable -->
+    <link rel="stylesheet" href="/PROYECTO/public/assets/css/Auth.css">
 </head>
 <body>
 
-    <h2>Crear Cuenta</h2>
+<div class="login-container">
+
+    <h2>Crea tu Cuenta</h2>
+    <p class="subtitle">Regístrate para comenzar a chatear</p>
 
     <?php if (!empty($error)) : ?>
-        <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
+        <div class="error-box">
+            <?php echo htmlspecialchars($error); ?>
+        </div>
     <?php endif; ?>
-    <form action="/PROYECTO/index.php?action=register_store" method="POST">
 
+    <form action="index.php?action=register_store" method="POST">
 
-        <label>Nombre:</label><br>
-        <input type="text" name="name" required><br><br>
+        <div class="input-group">
+            <label>Nombre de usuario</label>
+            <input type="text" name="name" placeholder="Tu nombre" required>
+        </div>
 
-        <label>Email:</label><br>
-        <input type="email" name="email" required><br><br>
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="correo@ejemplo.com" required>
+        </div>
 
-        <label>Contraseña:</label><br>
-        <input type="password" name="password" required><br><br>
+        <div class="input-group">
+            <label>Contraseña</label>
+            <input type="password" name="password" placeholder="********" required>
+        </div>
 
-        <button type="submit">Registrar</button>
+        <button class="btn" type="submit">Registrarme</button>
+
+        <p class="link">
+            ¿Ya tienes cuenta?  
+            <a href="index.php?action=login">Inicia sesión aquí</a>
+        </p>
+
     </form>
 
-    <p>
-        ¿Ya tienes cuenta?
-        <a href="index.php?action=login">Inicia sesión aquí</a>
-    </p>
+</div>
 
 </body>
 </html>

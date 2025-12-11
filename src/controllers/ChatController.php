@@ -50,17 +50,30 @@ class ChatController
         return (bool)$stmt->fetch();
     }
 
-    private function getUserChats($userId)
-    {
-        $stmt = $this->db->prepare("
-            SELECT * FROM chats
-            WHERE user1_id = :id OR user2_id = :id
-            ORDER BY updated_at DESC
-        ");
+   private function getUserChats($userId)
+{
+    $stmt = $this->db->prepare("
+        SELECT 
+            c.id,
+            CASE 
+                WHEN c.user1_id = :uid THEN u2.username
+                ELSE u1.username
+            END AS other_username,
+            CASE 
+                WHEN c.user1_id = :uid THEN u2.id
+                ELSE u1.id
+            END AS other_user_id
+        FROM chats c
+        JOIN users u1 ON u1.id = c.user1_id
+        JOIN users u2 ON u2.id = c.user2_id
+        WHERE c.user1_id = :uid OR c.user2_id = :uid
+        ORDER BY c.updated_at DESC
+    ");
 
-        $stmt->execute(['id' => $userId]);
-        return $stmt->fetchAll();
-    }
+    $stmt->execute(['uid' => $userId]);
+    return $stmt->fetchAll();
+}
+
 
     private function getMessages($chatId)
     {
