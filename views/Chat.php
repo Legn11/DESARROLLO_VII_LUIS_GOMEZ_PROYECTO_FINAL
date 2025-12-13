@@ -1,9 +1,5 @@
 <?php
-// Datos que llegan desde el ChatController:
-// $users → usuarios disponibles para iniciar chat
-// $chats → chats existentes
-// $messages → mensajes del chat activo
-// $activeChatId → id del chat activo
+
 ?>
 
 <!DOCTYPE html>
@@ -11,80 +7,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Chat</title>
+    <link rel="stylesheet" href="/PROYECTO/public/assets/css/Chat.css">
 
-    <style>
-        body {
-            font-family: Arial;
-            display: flex;
-            background: #f4f4f4;
-            margin: 0;
-        }
 
-        .sidebar {
-            width: 250px;
-            background: #fff;
-            padding: 15px;
-            border-right: 1px solid #ccc;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .chat-area {
-            flex: 1;
-            padding: 20px;
-        }
-
-        .user-item, .chat-item {
-            padding: 8px;
-            margin-bottom: 5px;
-            background: #eee;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .user-item:hover, .chat-item:hover {
-            background: #dcdcdc;
-        }
-
-        .messages-box {
-            border: 1px solid #ccc;
-            height: 400px;
-            padding: 10px;
-            background: #fff;
-            overflow-y: scroll;
-            margin-bottom: 10px;
-        }
-
-        .msg {
-            padding: 5px;
-            margin: 8px 0;
-            border-radius: 5px;
-        }
-
-        .me {
-            background: #d0ebff;
-            text-align: right;
-        }
-
-        .other {
-            background: #ececec;
-        }
-
-        .send-box {
-            background: #fff;
-            padding: 10px;
-            border: 1px solid #ccc;
-        }
-
-        textarea {
-            width: 100%;
-            height: 60px;
-        }
-
-        .top-bar {
-            padding-bottom: 10px;
-        }
-    </style>
 </head>
 <body>
 

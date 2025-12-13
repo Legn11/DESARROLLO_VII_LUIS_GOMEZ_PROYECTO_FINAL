@@ -11,10 +11,10 @@ define('BASE_PATH', __DIR__ . '/');
 // Configuración general
 require_once BASE_PATH . 'config.php';
 
-// Base de datos (ruta correcta)
+// Base de datos 
 require_once BASE_PATH . 'src/Database.php';
 
-// Auth (usa Database, por eso debe venir después)
+// Auth
 require_once BASE_PATH . 'src/Auth.php';
 
 // Controladores

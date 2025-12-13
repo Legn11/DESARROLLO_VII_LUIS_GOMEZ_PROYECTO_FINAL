@@ -1,4 +1,3 @@
-// ============= ENVÍO DE MENSAJES POR AJAX =============
 document.getElementById("sendMessageForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 

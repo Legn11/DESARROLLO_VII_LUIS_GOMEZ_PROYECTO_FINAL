@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Crear Cuenta</title>
 
-    <!-- CSS reutilizable -->
     <link rel="stylesheet" href="/PROYECTO/public/assets/css/Auth.css">
 </head>
 <body>
