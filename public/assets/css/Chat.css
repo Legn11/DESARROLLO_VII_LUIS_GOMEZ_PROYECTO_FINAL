@@ -118,7 +118,7 @@ body {
 
 .send-box {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     border: 1px solid #CBD5E0;
     background: #FFFFFF;
     border-radius: 10px;
@@ -136,6 +136,7 @@ body {
     resize: none;
     font-size: 14px;
     padding: 1px;
+    width: 100vh;
 }
 
 .send-box button {
@@ -171,4 +172,11 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #A0AEC0;
+}
+
+
+#sendMessageForm{
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
 }

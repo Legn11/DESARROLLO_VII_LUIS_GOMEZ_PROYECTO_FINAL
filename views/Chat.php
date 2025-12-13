@@ -37,9 +37,28 @@
     <h3>Mis Chats</h3>
     <?php if (!empty($chats)): ?>
         <?php foreach ($chats as $chat): ?>
-            <div class="chat-item" onclick="location.href='index.php?action=chat&chat_id=<?php echo $chat['id']; ?>'">
-                💬 <?php echo htmlspecialchars($chat['other_username']); ?>
-            </div>
+
+
+         <div class="chat-item">
+
+    <!-- Área clickeable para abrir el chat -->
+    <div class="chat-link"
+         onclick="location.href='index.php?action=chat&chat_id=<?php echo $chat['id']; ?>'">
+        💬 <?php echo htmlspecialchars($chat['other_username']); ?>
+    </div>
+
+    <!-- Botón eliminar (acción independiente) -->
+    <form action="index.php?action=delete_chat"
+          method="POST"
+          onsubmit="return confirm('¿Eliminar este chat?');"
+          class="delete-chat-form">
+        <input type="hidden" name="chat_id" value="<?php echo $chat['id']; ?>">
+        <button type="submit" class="delete-btn">🗑</button>
+    </form>
+
+</div>
+
+
 
         <?php endforeach; ?>
     <?php else: ?>

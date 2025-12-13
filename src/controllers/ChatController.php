@@ -194,4 +194,44 @@ class ChatController
         $stmt->execute(['id' => $userId]);
         return $stmt->fetchAll();
     }
+
+
+    public function deleteChat()
+    {
+        if (!Auth::isAuthenticated()) {
+            header("Location: index.php?action=login");
+            exit;
+        }
+
+        $userId = Auth::user()['id'];
+        $chatId = $_POST['chat_id'] ?? null;
+
+        if (!$chatId) {
+            die("Chat inválido.");
+        }
+
+        // Verificar que el usuario pertenece al chat
+        $stmt = $this->db->prepare("
+            SELECT id FROM chats
+            WHERE id = :chat
+            AND (user1_id = :uid OR user2_id = :uid)
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            'chat' => $chatId,
+            'uid' => $userId
+        ]);
+
+        if (!$stmt->fetch()) {
+            die("Acceso denegado.");
+        }
+
+        // Eliminar chat
+        $stmt = $this->db->prepare("DELETE FROM chats WHERE id = :id");
+        $stmt->execute(['id' => $chatId]);
+
+        header("Location: index.php?action=chat");
+        exit;
+    }
 }

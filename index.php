@@ -78,6 +78,10 @@ switch ($action) {
         (new ChatController())->newChat();
         break;
 
+    case 'delete_chat':
+        (new ChatController())->deleteChat();
+        break;
+
     default:
         http_response_code(404);
         echo "<h2>404 - Página no encontrada</h2>";
